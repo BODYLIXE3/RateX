@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RateX</title>
+<link rel="icon" href="img/11zon_cropped.png" type="image/png">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/css/intlTelInput.css" />
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<style>
+body { background: #0f172a; color: #e2e8f0; }
+.brand-card { background: linear-gradient(135deg,#111827,#0b1220); border: 1px solid #1f2937; }
+.btn-primary { background: #2563eb; border: none; }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 25px rgba(37,99,235,0.35); }
+.btn-secondary { background: #0ea5e9; border: none; }
+.btn-outline-light { color:#e2e8f0; border:1px solid #e2e8f0; background:transparent; }
+.badge-lang { cursor: pointer; }
+.star { font-size: 1.6rem; cursor: pointer; transition: transform 0.2s ease, color 0.2s ease; color: white; }
+.star:hover { transform: scale(1.3) rotate(-10deg); }
+.star.active { color: #facc15; animation: pop 0.3s ease; }
+.star.hover { color: #facc15; }
+@keyframes pop { 0% { transform: scale(0.8) rotate(0deg); } 50% { transform: scale(1.4) rotate(10deg); } 100% { transform: scale(1) rotate(0deg); } }
+label { color: #cbd5e1; }
+.form-control, .form-select { background: #0b1220; border-color: #1f2937; color: #e2e8f0; }
+.form-control:focus, .form-select:focus { border-color: #2563eb; box-shadow: 0 0 0 .25rem rgba(37,99,235,.25); }
+.divider { border-top: 1px dashed #334155; }
+.form-invalid { border-color: #f87171 !important; }
+.note-text { color:#e2e8f0; font-size:1.2rem; }
+#summaryContent .info { font-size:1.2rem; color:#e2e8f0; margin-bottom:10px; }
+.price-text { font-size:1.5rem; color:#e2e8f0; margin-top:10px; }
+</style>
+</head>
+<body>
+<div class="container py-4 py-md-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex gap-2">
+      <button id="lang-ar" class="btn btn-secondary badge-lang">العربية</button>
+      <button id="lang-en" class="btn btn-outline-light badge-lang">English</button>
+    </div>
+    <div class="text-end small text-muted">v1.0</div>
+  </div>
+
+  <!-- Form Page -->
+  <div class="p-4 p-md-5 rounded-4 shadow brand-card" id="formPage">
+    <div class="mb-4">
+      <h1 class="h3 mb-1" data-i18n="heading">طلب تقييمات موثوقة</h1>
+      <p class="text-secondary" data-i18n="subheading">املأ البيانات التالية. نحافظ على سرية معلوماتك ولا نشاركها.</p>
+    </div>
+
+    <form id="orderForm" novalidate>
+      <div class="row g-4">
+        <div class="col-md-6">
+          <label for="fullName" class="form-label" data-i18n="name_label">الإسم</label>
+          <input type="text" id="fullName" name="fullName" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+          <label for="email" class="form-label" data-i18n="email_label">البريد الإلكتروني</label>
+          <input type="email" id="email" name="email" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+          <label for="phone" class="form-label" data-i18n="phone_label">رقم الهاتف + كود الدولة</label>
+          <input type="tel" id="phone" class="form-control" />
+        </div>
+        <div class="col-md-6">
+          <label for="projectUrl" class="form-label" data-i18n="project_label">رابط المشروع التجاري</label>
+          <input type="url" id="projectUrl" name="projectUrl" class="form-control" placeholder="https://" required>
+        </div>
+
+        <div class="col-12">
+          <label class="form-label" data-i18n="rating_label">التقييم المطلوب</label>
+          <div id="stars" class="d-flex gap-2">
+            <span class="star" data-value="1">★</span>
+            <span class="star" data-value="2">★</span>
+            <span class="star" data-value="3">★</span>
+            <span class="star" data-value="4">★</span>
+            <span class="star" data-value="5">★</span>
+          </div>
+          <input type="hidden" name="rating" id="rating" />
+        </div>
+
+        <div class="col-md-6">
+          <label for="reviewsCount" class="form-label" data-i18n="count_label">عدد التقييمات</label>
+          <select id="reviewsCount" name="reviewsCount" class="form-select" required>
+            <option value="" selected disabled>--</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="200">200</option>
+            <option value="500">500</option>
+            <option value="800">800</option>
+            <option value="1000">1000</option>
+          </select>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label" data-i18n="lang_label">لغة التقييمات</label>
+          <div class="d-flex gap-3 align-items-center">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="reviewsLang" id="lang_arabic" value="Arabic">
+              <label class="form-check-label" for="lang_arabic">Arabic</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="reviewsLang" id="lang_english" value="English">
+              <label class="form-check-label" for="lang_english">English</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="reviewsLang" id="lang_both" value="Both">
+              <label class="form-check-label" for="lang_both">Both</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <label for="paypalUser" class="form-label" data-i18n="paypal_label">يوزر حساب PayPal الذي سيتم التحويل منه</label>
+          <input type="text" id="paypalUser" name="paypalUser" class="form-control" placeholder="" required>
+        </div>
+      </div>
+
+      <div class="divider my-4"></div>
+      <div class="d-flex justify-content-between align-items-center">
+        <button type="submit" id="continueBtn" class="btn btn-primary px-4" data-i18n="continue_btn">استمر</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Summary Page -->
+  <div class="p-4 p-md-5 rounded-4 shadow brand-card d-none" id="summaryPage">
+    <h3 data-i18n="summary_heading">ملخص الطلب</h3>
+    <div id="summaryContent" class="mb-3"></div>
+    <div class="d-flex gap-2">
+      <a href="https://www.paypal.com/paypalme/SaidElghysh" target="_blank" class="btn btn-secondary" id="paypalBtn" data-i18n="paypal_btn">تحويل</a>
+      <button class="btn btn-primary" id="sendEmailBtn" data-i18n="send_btn">إرسال</button>
+    </div>
+    <div id="messageArea" class="mt-3 note-text"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/intlTelInput.min.js"></script>
+
+<script>
+// Initialize EmailJS
+emailjs.init("Yg4sIaTquyrINGaAp");
+
+// Initialize phone input
+const phoneInput = intlTelInput(document.querySelector("#phone"), {
+  initialCountry: "auto",
+  geoIpLookup: function(success, failure) {
+    fetch('https://ipapi.co/json')
+      .then(res => res.json())
+      .then(data => success(data.country_code))
+      .catch(() => success('US'));
+  },
+  utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/utils.js"
+});
+
+// ---------------- I18N ----------------
+const i18n = {
+  ar: {
+    heading: 'طلب تقييمات موثوقة',
+    subheading: 'املأ البيانات التالية. نحافظ على سرية معلوماتك ولا نشاركها.',
+    name_label: 'الإسم',
+    email_label: 'البريد الإلكتروني',
+    phone_label: 'رقم الهاتف + كود الدولة',
+    project_label: 'رابط المشروع التجاري',
+    rating_label: 'التقييم المطلوب',
+    count_label: 'عدد التقييمات',
+    lang_label: 'لغة التقييمات',
+    paypal_label: 'يوزر حساب PayPal الذي سيتم التحويل منه',
+    continue_btn: 'استمر',
+    summary_heading: 'ملخص الطلب',
+    paypal_btn: 'تحويل',
+    send_btn: 'إرسال',
+    sent_msg: 'تم إرسال طلبك إلى المتخصصين. سيتم التواصل معك والتأكد من أنك قد قمت بتحويل المبلغ المطلوب. إذا لم يتم تحويل المبلغ المطلوب, سنضطر آسفين لعدم إرسال التقييمات.',
+    error_send: 'حدث خطأ أثناء إرسال الرسالة. حاول مرة أخرى.',
+    name_summary: 'الاسم',
+    email_summary: 'البريد',
+    phone_summary: 'الهاتف',
+    project_summary: 'رابط المشروع',
+    rating_summary: 'التقييم المطلوب',
+    count_summary: 'عدد التقييمات',
+    lang_summary: 'لغة التقييم',
+    paypal_summary: 'يوزر PayPal',
+    price_summary: 'السعر',
+    stars: 'نجوم'
+  },
+  en: {
+    heading: 'Order Trusted Reviews',
+    subheading: 'Fill in the details below. We use secure processes and never share your data.',
+    name_label: 'Name',
+    email_label: 'Email',
+    phone_label: 'Phone (with country code)',
+    project_label: 'Business / Project URL',
+    rating_label: 'Desired rating',
+    count_label: 'Number of reviews',
+    lang_label: 'Reviews language',
+    paypal_label: 'PayPal account username (payer)',
+    continue_btn: 'Continue',
+    summary_heading: 'Order Summary',
+    paypal_btn: 'Pay Now',
+    send_btn: 'Send',
+    sent_msg: 'Your request has been sent to specialists. They will contact you to confirm payment. If not paid, you will not receive reviews.',
+    error_send: 'Error sending the message. Please try again.',
+    name_summary: 'Name',
+    email_summary: 'Email',
+    phone_summary: 'Phone',
+    project_summary: 'Project URL',
+    rating_summary: 'Desired Rating',
+    count_summary: 'Number of Reviews',
+    lang_summary: 'Reviews Language',
+    paypal_summary: 'PayPal Username',
+    price_summary: 'Price',
+    stars: 'stars'
+  }
+};
+
+let currentLang = 'ar';
+function updateLanguage(lang) {
+  currentLang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    el.innerText = i18n[lang][key];
+  });
+  // Update summary page content if it exists
+  if (!document.getElementById('summaryPage').classList.contains('d-none')) {
+    updateSummaryContent();
+  }
+  // Update direction and language attributes
+  document.documentElement.setAttribute('lang', lang === 'ar' ? 'ar' : 'en');
+  document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+}
+
+document.getElementById('lang-ar').addEventListener('click', () => updateLanguage('ar'));
+document.getElementById('lang-en').addEventListener('click', () => updateLanguage('en'));
+
+// Star rating
+const stars = document.querySelectorAll('.star');
+let ratingValue = 0;
+stars.forEach(star => {
+  star.addEventListener('mouseover', () => {
+    stars.forEach(s => s.classList.remove('hover'));
+    for (let i = 0; i < star.dataset.value; i++) stars[i].classList.add('hover');
+  });
+  star.addEventListener('mouseout', () => {
+    stars.forEach(s => s.classList.remove('hover'));
+  });
+  star.addEventListener('click', () => {
+    ratingValue = star.dataset.value;
+    document.getElementById('rating').value = ratingValue;
+    stars.forEach(s => s.classList.remove('active'));
+    for (let i = 0; i < ratingValue; i++) stars[i].classList.add('active');
+  });
+});
+
+// Function to update summary content
+function updateSummaryContent() {
+  const summary = document.getElementById('summaryContent');
+  const phoneData = phoneInput.getNumber();
+  const countryCode = phoneInput.getSelectedCountryData().dialCode;
+  const count = document.getElementById('reviewsCount').value;
+  let price = 0;
+  if (count == 20) price = 14;
+  else if (count == 50) price = 35;
+  else if (count == 100) price = 70;
+  else if (count == 200) price = 140;
+  else if (count == 500) price = 350;
+  else if (count == 800) price = 560;
+  else if (count == 1000) price = 700;
+
+  summary.innerHTML = `
+    <div class="info">${i18n[currentLang].name_summary}: ${document.getElementById('fullName').value}</div>
+    <div class="info">${i18n[currentLang].email_summary}: ${document.getElementById('email').value}</div>
+    <div class="info">${i18n[currentLang].phone_summary}: +${countryCode} ${phoneInput.getNumber()}</div>
+    <div class="info">${i18n[currentLang].project_summary}: ${document.getElementById('projectUrl').value}</div>
+    <div class="info">${i18n[currentLang].rating_summary}: ${ratingValue} ${i18n[currentLang].stars}</div>
+    <div class="info">${i18n[currentLang].count_summary}: ${count}</div>
+    <div class="info">${i18n[currentLang].lang_summary}: ${document.querySelector('input[name="reviewsLang"]:checked').value}</div>
+    <div class="info">${i18n[currentLang].paypal_summary}: ${document.getElementById('paypalUser').value}</div>
+    <div class="price-text">${i18n[currentLang].price_summary}: $${price}</div>
+  `;
+}
+
+// Continue button
+document.getElementById('orderForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  let valid = true;
+
+  // Validate fields
+  const fields = ['fullName', 'email', 'projectUrl', 'paypalUser'];
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el.value) { el.classList.add('form-invalid'); valid = false; }
+    else el.classList.remove('form-invalid');
+  });
+
+  // Validate phone
+  if (!phoneInput.isValidNumber()) { document.getElementById('phone').classList.add('form-invalid'); valid = false; }
+  else document.getElementById('phone').classList.remove('form-invalid');
+
+  // Validate email
+  const email = document.getElementById('email');
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email.value)) { email.classList.add('form-invalid'); valid = false; } else email.classList.remove('form-invalid');
+
+  // Validate PayPal username
+  const paypal = document.getElementById('paypalUser');
+  if (!paypal.value) { paypal.classList.add('form-invalid'); valid = false; } else paypal.classList.remove('form-invalid');
+
+  if (!ratingValue) { alert(i18n[currentLang].rating_label); valid = false; }
+  if (!document.querySelector('input[name="reviewsLang"]:checked')) { alert(i18n[currentLang].lang_label); valid = false; }
+  if (!document.getElementById('reviewsCount').value) { alert(i18n[currentLang].count_label); valid = false; }
+
+  if (!valid) return;
+
+  // Show summary
+  updateSummaryContent();
+  document.getElementById('formPage').classList.add('d-none');
+  document.getElementById('summaryPage').classList.remove('d-none');
+});
+
+// Send email
+document.getElementById('sendEmailBtn').addEventListener('click', () => {
+  const templateParams = {
+    fullName: document.getElementById('fullName').value,
+    email: document.getElementById('email').value,
+    phone: phoneInput.getNumber(),
+    projectUrl: document.getElementById('projectUrl').value,
+    rating: ratingValue,
+    reviewsCount: document.getElementById('reviewsCount').value,
+    reviewsLang: document.querySelector('input[name="reviewsLang"]:checked').value,
+    paypalUser: document.getElementById('paypalUser').value
+  };
+  emailjs.send('service_rd17qrm', 'template_r7c3vm8', templateParams)
+    .then(() => { document.getElementById('messageArea').innerText = i18n[currentLang].sent_msg; })
+    .catch(() => { document.getElementById('messageArea').innerText = i18n[currentLang].error_send; });
+});
+</script>
+</body>
+</html>
